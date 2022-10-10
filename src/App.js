@@ -11,10 +11,10 @@ function App({ signOut }) {
 
   useEffect(() => {
     Hub.listen('ui', (capsule) => {
-      if (capsule.payload.event === 'actions:datastore:create:finishes') {
+      if (capsule.payload.event === 'actions:datastore:create:finished') {
         setShowCreateModal(false)
       }
-      if (capsule.payload.event === 'actions:datastore:update:finishes') {
+      if (capsule.payload.event === 'actions:datastore:update:finished') {
         setShowUpdateModal(false)
       }
     })
