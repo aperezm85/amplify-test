@@ -1,25 +1,73 @@
-import logo from './logo.svg';
-import './App.css';
+import { withAuthenticator } from '@aws-amplify/ui-react';
+import { DataStore, Hub } from 'aws-amplify';
 
-function App() {
+import React, { useEffect, useState } from 'react';
+import { CreateNote, NavBar, NoteUICollection, UpdateNote } from './ui-components'
+
+function App({ signOut }) {
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showUpdateModal, setShowUpdateModal] = useState(false)
+  const [noteToUpdate, setNoteToUpdate] = useState()
+
+  useEffect(() => {
+    Hub.listen('ui', (capsule) => {
+      if (capsule.payload.event === 'actions:datastore:create:finishes') {
+        setShowCreateModal(false)
+      }
+      if (capsule.payload.event === 'actions:datastore:update:finishes') {
+        setShowUpdateModal(false)
+      }
+    })
+  })
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <NavBar width="100%" marginBottom="20px" overrides={{
+        'Button31632483': {
+          onClick: () => {
+            setShowCreateModal(true)
+          }
+        }, 'Button31632487': {
+          onClick: () => {
+            signOut();
+            DataStore.clear()
+          }
+        }
+      }} />
+      <div>
+        <NoteUICollection overrideItems={({ item }) => ({
+          overrides: {
+            'EditButton': {
+              onClick: () => {
+                setShowUpdateModal(true)
+                setNoteToUpdate(item)
+              }
+            }
+          }
+        })} />
+      </div>
+      <div className='modal' style={{ display: !showCreateModal && 'none' }}>
+        <CreateNote overrides={{
+          'MyIcon': {
+            onClick: () => {
+              setShowCreateModal(false)
+            }
+          }
+        }} />
+      </div>
+      <div className='modal' style={{ display: !showUpdateModal && 'none' }}>
+        <UpdateNote
+          note={noteToUpdate}
+          overrides={{
+            'MyIcon': {
+              onClick: () => {
+                setShowUpdateModal(false)
+              }
+            }
+          }} />
+      </div>
     </div>
   );
 }
 
-export default App;
+export default withAuthenticator(App);
